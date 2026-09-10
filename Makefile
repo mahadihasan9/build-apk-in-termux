@@ -55,9 +55,9 @@ BOLD   := \033[1m
         key-gen generate-key rmbak lib apk sign
 
 # ----------------------------------------------------------------------------
-#  Default Target: Build Everything
+#  Default Target: Full Build (Java + Resources + DEX + Lib + APK)
 # ----------------------------------------------------------------------------
-all: lib apk
+all: dex lib apk
 	@echo ""
 	@echo "$(GREEN)==========================================$(RESET)"
 	@echo "$(GREEN)  BUILD SUCCESSFUL: $(APK_DIR)/app.apk$(RESET)"
@@ -72,8 +72,9 @@ all: lib apk
 help:
 	@echo "$(BOLD)Android Build System - Available Targets$(RESET)"
 	@echo "$(CYAN)------------------------------------------$(RESET)"
-	@echo "  $(GREEN)make$(RESET)          : Full build (lib + apk)"
+	@echo "  $(GREEN)make$(RESET)          : Full build (dex + lib + apk)"
 	@echo "  $(GREEN)make lib$(RESET)      : Build native library only"
+	@echo "  $(GREEN)make dex$(RESET)      : Compile Java + resources + DEX"
 	@echo "  $(GREEN)make apk$(RESET)      : Build APK from existing files"
 	@echo "  $(GREEN)make install$(RESET)  : Install APK (requires root)"
 	@echo "  $(GREEN)make uninstall$(RESET): Remove app from device"
