@@ -1,4 +1,4 @@
-name: Makefile CI
+name: Build APK
 
 on:
   push:
@@ -8,20 +8,48 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-    - name: configure
-      run: ./configure
+    - name: Set up Termux/Android Build Tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          default-jdk \
+          android-sdk \
+          android-sdk-build-tools \
+          android-sdk-platform-tools \
+          zipalign \
+          apksigner
 
-    - name: Install dependencies
-      run: make
+    - name: Display help
+      run: make help
 
-    - name: Run check
-      run: make check
+    - name: Build APK (full build)
+      run: make all
 
-    - name: Run distcheck
-      run: make distcheck
+    - name: Verify APK
+      run: |
+        if [ -f build/apk/app.apk ]; then
+          ls -lh build/apk/app.apk
+          echo "✓ APK built successfully!"
+        else
+          echo "✗ APK not found!"
+          exit 1
+        fi
+
+    - name: Upload APK artifact
+      if: success()
+      uses: actions/upload-artifact@v3
+      with:
+        name: apk-build
+        path: build/apk/app.apk
+        retention-days: 30
+
+    - name: Clean up
+      if: always()
+      run: make clean
