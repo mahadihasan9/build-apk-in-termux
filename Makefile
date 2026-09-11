@@ -287,29 +287,57 @@ sign: apk
 #  Installation & Uninstallation
 # ----------------------------------------------------------------------------
 install:
-	@echo "$(YELLOW)--> Installing APK...$(RESET)"
-	@if command -v adb >/dev/null 2>&1 && adb get-state >/dev/null 2>&1; then \
-		adb install -r $(APK_DIR)/app.apk; \
-	elif command -v su >/dev/null 2>&1; then \
-		su -c "pm install -r $(APK_DIR)/app.apk"; \
+	@if [ -d "/data/data/com.termux" ] || [ -n "$$TERMUX_VERSION" ]; then \
+		echo "$(YELLOW)--> Termux detected: Installing APK via root (su)...$(RESET)"; \
+		if command -v su >/dev/null 2>&1; then \
+			su -c "pm install -r $(APK_DIR)/app.apk" && echo "$(GREEN)--> Installed successfully$(RESET)"; \
+		else \
+			echo "$(RED)Error: Root (su) required to install APK directly inside Termux.$(RESET)"; \
+			echo "You can install manually by opening: $(APK_DIR)/app.apk"; \
+			exit 1; \
+		fi; \
 	else \
-		echo "$(RED)--> Neither adb nor su (pm) available for installation.$(RESET)"; \
-		echo "    You can manually install $(APK_DIR)/app.apk on your device."; \
-		exit 1; \
+		echo "$(YELLOW)--> Linux PC detected: Installing APK via ADB...$(RESET)"; \
+		if ! command -v adb >/dev/null 2>&1; then \
+			echo "$(RED)Error: adb is not installed! Run ./setup.sh or: sudo apt install adb$(RESET)"; \
+			exit 1; \
+		fi; \
+		DEVICES=$$(adb devices 2>/dev/null | grep -w "device" | awk '{print $$1}'); \
+		if [ -z "$$DEVICES" ]; then \
+			echo "$(RED)Error: No Android device connected via ADB!$(RESET)"; \
+			echo "Please connect your phone via USB with USB Debugging enabled,"; \
+			echo "or start an Android emulator, then verify with: adb devices"; \
+			exit 1; \
+		else \
+			echo "$(YELLOW)--> Found device ($$DEVICES). Installing $(APK_DIR)/app.apk...$(RESET)"; \
+			adb install -r $(APK_DIR)/app.apk && echo "$(GREEN)--> Installed successfully via ADB$(RESET)"; \
+		fi; \
 	fi
-	@echo "$(GREEN)--> Installed successfully$(RESET)"
 
 uninstall:
-	@echo "$(YELLOW)--> Uninstalling $(PKG_NAME)...$(RESET)"
-	@if command -v adb >/dev/null 2>&1 && adb get-state >/dev/null 2>&1; then \
-		adb uninstall $(PKG_NAME); \
-	elif command -v su >/dev/null 2>&1; then \
-		su -c "pm uninstall $(PKG_NAME)"; \
+	@if [ -d "/data/data/com.termux" ] || [ -n "$$TERMUX_VERSION" ]; then \
+		echo "$(YELLOW)--> Termux detected: Uninstalling $(PKG_NAME) via root (su)...$(RESET)"; \
+		if command -v su >/dev/null 2>&1; then \
+			su -c "pm uninstall $(PKG_NAME)" && echo "$(GREEN)--> Uninstalled successfully$(RESET)"; \
+		else \
+			echo "$(RED)Error: Root (su) required to uninstall inside Termux.$(RESET)"; \
+			exit 1; \
+		fi; \
 	else \
-		echo "$(RED)--> Neither adb nor su available to uninstall.$(RESET)"; \
-		exit 1; \
+		echo "$(YELLOW)--> Linux PC detected: Uninstalling $(PKG_NAME) via ADB...$(RESET)"; \
+		if ! command -v adb >/dev/null 2>&1; then \
+			echo "$(RED)Error: adb is not installed!$(RESET)"; \
+			exit 1; \
+		fi; \
+		DEVICES=$$(adb devices 2>/dev/null | grep -w "device" | awk '{print $$1}'); \
+		if [ -z "$$DEVICES" ]; then \
+			echo "$(RED)Error: No Android device connected via ADB!$(RESET)"; \
+			echo "Please connect your phone via USB with USB Debugging enabled."; \
+			exit 1; \
+		else \
+			adb uninstall $(PKG_NAME) && echo "$(GREEN)--> Uninstalled successfully via ADB$(RESET)"; \
+		fi; \
 	fi
-	@echo "$(GREEN)--> Uninstalled successfully$(RESET)"
 
 # ----------------------------------------------------------------------------
 #  Cleanup
