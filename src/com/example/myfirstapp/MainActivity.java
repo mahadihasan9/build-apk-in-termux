@@ -17,7 +17,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        TextView output = findViewById(R.id.output);
+        TextView output = (TextView) findViewById(R.id.output);
         output.setText(getMessage());
     }
 }

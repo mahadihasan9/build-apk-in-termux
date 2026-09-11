@@ -1,25 +1,26 @@
-# 📱 Termux Android Build System
-## Build APKs Directly on Your Phone - No Studio, No Computer Required
+# 📱 Linux Android Build System
+## Build APKs on Linux Mint, Ubuntu, Debian & Termux — No Android Studio Required
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Termux%20%7C%20Android-green.svg)](https://termux.dev)
+[![Platform](https://img.shields.io/badge/platform-Linux%20Mint%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Termux-green.svg)](https://termux.dev)
 [![Language](https://img.shields.io/badge/language-Java%20%2B%20C%2B%2B-orange.svg)](#)
 [![Status](https://img.shields.io/badge/status-Active-brightgreen.svg)](#)
 
-A lightweight, self-contained **Android development environment** that runs entirely within Termux on your smartphone. Compile mixed Java and Native C/C++ projects directly into production-ready, signed APKs—all from the comfort of your mobile device.
+A lightweight, self-contained **Android CLI development environment** designed for **Linux Mint, Ubuntu, Debian (`apt`)**, and **Termux**. Compile mixed Java and Native C/C++ projects directly into production-ready, aligned, and signed APKs from your terminal without needing Android Studio or Gradle overhead.
 
 ---
 
 ## ✨ Key Features
 
-- **🚀 Mobile-First Development** – Build apps entirely on your smartphone using Termux
+- **🚀 Linux & Mobile Ready** – Build apps seamlessly on Linux Mint, Ubuntu, Debian (`apt`), or on your phone via Termux
 - **☕ Java + Native C/C++ Support** – Seamlessly mix Java and NDK code in one project
 - **🔧 JNI Integration** – Call native C++ functions directly from Java
-- **⚙️ Full Automation** – Single `make` command orchestrates the entire build pipeline
-- **🔐 Self-Signed Certificates** – Automatic keystore generation for APK signing
-- **📦 Production-Ready Output** – Generate aligned, signed APKs ready for installation
-- **🎯 arm64-v8a Architecture** – Optimized for modern Android devices
-- **💻 Minimal Dependencies** – Only requires Termux and standard build tools
+- **⚙️ Complete Automation** – Build with either `./build.sh` or `make`
+- **🩺 Diagnostic Doctor** – Run `./build.sh doctor` to inspect tools, SDK, NDK, and Java environment
+- **📐 4-Byte ZipAlign** – Ensures standard Android 4-byte zip alignment before signing
+- **🔐 Self-Signed Certificates** – Automatic keystore generation for APK signing (v1, v2, v3 schemes)
+- **📦 Production-Ready Output** – Generate aligned, signed APKs ready for immediate installation
+- **🎯 Multi-Tool Support** – Supports modern `d8` (with `dx` fallback) and Android NDK
 
 ---
 
@@ -27,21 +28,22 @@ A lightweight, self-contained **Android development environment** that runs enti
 
 | Component | Technology |
 |-----------|-----------|
-| **Language** | Java 1.8 + C/C++ (NDK) |
-| **Build System** | GNU Make |
+| **Language** | Java 1.8 + C/C++ (NDK/JNI) |
+| **Build Automation** | `./build.sh` (Bash) + GNU Make |
 | **Resource Compiler** | AAPT2 |
-| **Java Compiler** | javac |
-| **Native Compiler** | aarch64-linux-android-clang++ |
-| **DEX Compiler** | dx |
-| **Signing Tool** | apksigner |
-| **Android Target** | Android 13 (API 33) |
+| **Java Compiler** | javac (OpenJDK 17/11/8) |
+| **DEX Compiler** | d8 (modern) / dx (dalvik-exchange fallback) |
+| **APK Alignment** | zipalign (4-byte alignment) |
+| **Signing Tool** | apksigner (v1, v2, v3 signature schemes) |
+| **Native Compiler** | Android NDK Clang / Host Clang++ (fallback) |
+| **Android Target** | Android 13 (API 33) / API 23+ compatible |
 | **Minimum API** | API 21 (Android 5.0) |
 
 ---
 
 ## 📋 Prerequisites
 
-- **Termux** installed on Android device
+- **Linux** installed on Android device
 - **Internet connection** (for downloading SDK)
 - **~500MB free storage** (for Android SDK + build tools)
 - **Basic Linux/Terminal knowledge**
@@ -52,7 +54,7 @@ A lightweight, self-contained **Android development environment** that runs enti
 
 ### Step 1: Environment Setup
 
-Run the automated setup script to install all required tools and dependencies:
+Run the automated setup script to install all required tools and dependencies via `apt`:
 
 ```bash
 chmod +x setup.sh
@@ -60,24 +62,24 @@ chmod +x setup.sh
 ```
 
 **What it does:**
-- ✅ Installs AAPT2, APKSigner, dx, zip, and NDK tools
-- ✅ Downloads Android SDK Platform 33 (android.jar)
-- ✅ Verifies NDK compiler availability
-- ✅ Creates necessary directories
+- ✅ Installs OpenJDK 17, AAPT2, APKSigner, zipalign, dx/d8, zip, and clang via `apt`
+- ✅ Sets up Android SDK Platform (`android.jar`)
+- ✅ Verifies C++ compiler availability
+- ✅ Creates necessary directories & symlinks
 
 ### Step 2: Build Your App
 
-Execute the complete build pipeline with a single command:
+Execute the build pipeline using `make`:
 
 ```bash
 make
 ```
 
-**Output:** `build/apk/app.apk` (signed and ready to install)
+**Output:** `build/apk/app.apk` (aligned, signed, and ready to install)
 
 ### Step 3: Install on Device (Optional)
 
-For rooted devices, install the APK directly:
+Deploy directly to a connected device via ADB (or rooted device `pm`):
 
 ```bash
 make install
@@ -91,17 +93,17 @@ make install
 build-apk-in-termux/
 │
 ├── 📄 AndroidManifest.xml         # App configuration & permissions
-├── 📋 Makefile                    # Build automation (all targets)
-├── 📝 setup.sh                    # One-click environment setup
-├── 🔑 my-release-key.jks          # Signing certificate
-├── README.md                      # This file
+├── 📋 Makefile                    # Build automation (GNU Make)
+├── 📝 setup.sh                    # apt / environment setup script
+├── 🔑 my-release-key.jks          # Signing certificate (auto-generated if missing)
+├── README.md                      # Project documentation
 ├── LICENSE                        # MIT License
 │
 ├── 📁 src/                        # Source code
 │   ├── com/example/myfirstapp/
-│   │   └── MainActivity.java       # Main Activity (entry point)
+│   │   └── MainActivity.java      # Main Activity (Java entry point)
 │   └── jni/
-│       └── native.cpp             # Native C++ code
+│       └── native.cpp             # Native C++ code (JNI)
 │
 ├── 📁 res/                        # Android resources
 │   ├── layout/
@@ -121,49 +123,50 @@ build-apk-in-termux/
 ## 🔄 Build Pipeline Explained
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│              COMPLETE BUILD WORKFLOW (make)                  │
-├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│  1. RESOURCE COMPILATION                                    │
-│     res/ (XML) ──[aapt2 compile]──> compiled_res/          │
-│                                                              │
-│  2. RESOURCE LINKING & R.java GENERATION                    │
-│     compiled_res/ ──[aapt2 link]──> gen/R.java             │
-│                                                              │
-│  3. JAVA COMPILATION                                        │
-│     src/ + gen/R.java ──[javac]──> build/obj/ (.class)    │
-│                                                              │
-│  4. NATIVE LIBRARY COMPILATION                              │
-│     src/jni/ ──[clang++]──> build/lib/arm64-v8a/*.so       │
-│                                                              │
-│  5. DEX CONVERSION                                          │
-│     build/obj/ ──[dx]──> build/classes.dex                 │
-│                                                              │
-│  6. APK PACKAGING                                           │
-│     classes.dex + *.so + resources ──[zip]──> app.apk      │
-│                                                              │
-│  7. APK SIGNING & ALIGNMENT                                 │
-│     app.apk ──[apksigner]──> build/apk/app.apk (signed)   │
-│                                                              │
-└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                 COMPLETE BUILD WORKFLOW (make)                   │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  1. RESOURCE COMPILATION                                        │
+│     res/ (XML) ───────────────[aapt2 compile]──> compiled_res/  │
+│                                                                  │
+│  2. RESOURCE LINKING & R.java GENERATION                        │
+│     compiled_res/ + android.jar ─[aapt2 link]──> gen/R.java      │
+│                                                                  │
+│  3. JAVA COMPILATION                                            │
+│     src/ + gen/R.java ─────────────[javac]─────> build/obj/     │
+│                                                                  │
+│  4. NATIVE LIBRARY COMPILATION (Optional JNI)                   │
+│     src/jni/ ───────────────[clang++]──────────> libnative.so   │
+│                                                                  │
+│  5. DEX CONVERSION                                              │
+│     build/obj/ ───────────────[d8 / dx]────────> classes.dex    │
+│                                                                  │
+│  6. APK PACKAGING & ALIGNMENT                                   │
+│     classes.dex + *.so + res ────[zip]─────────> unaligned.apk  │
+│     unaligned.apk ─────────[zipalign 4-byte]───> aligned.apk    │
+│                                                                  │
+│  7. APK SIGNING (v1 + v2 + v3)                                  │
+│     aligned.apk ─────────────[apksigner]───────> apk/app.apk    │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## 🎮 Available Make Commands
 
-| Command | Description |
-|---------|-------------|
-| `make` | **Full build** – Compile everything and generate signed APK |
-| `make lib` | **Native only** – Build C++ library without Java/APK |
-| `make apk` | **Package only** – Create APK from existing build artifacts |
-| `make clean` | **Clean workspace** – Remove all build directories |
-| `make install` | **Deploy to device** – Install APK (requires root) |
-| `make uninstall` | **Remove app** – Uninstall `com.example.myfirstapp` |
-| `make key-gen` | **Generate keystore** – Create/regenerate signing certificate |
-| `make rmbak` | **Remove backups** – Delete all `.bak` files |
-| `make help` | **Show help** – Display all available commands |
+| Target | Description |
+|--------|-------------|
+| `make` | Full build (DEX + Native Lib + APK packaging & signing) |
+| `make lib` | Build native C++ library only |
+| `make dex` | Compile Java and resources into `classes.dex` |
+| `make apk` | Package, align with `zipalign`, and sign with `apksigner` |
+| `make clean` | Remove all build artifacts |
+| `make install` | Install APK on device via ADB or `su` |
+| `make uninstall`| Uninstall app from device |
+| `make key-gen` | Generate release keystore |
+| `make help` | Show help menu and auto-detected tool paths |
 
 ---
 
@@ -364,7 +367,7 @@ ANDROID_JAR := $(HOME)/android-sdk/android-34.jar
 - [Android Developer Documentation](https://developer.android.com)
 - [JNI Documentation](https://docs.oracle.com/javase/8/docs/technotes/guides/jni/)
 - [NDK Build Guide](https://developer.android.com/ndk/guides)
-- [Termux Documentation](https://termux.dev)
+- [Linux Documentation](https://termux.dev)
 - [AAPT2 Reference](https://developer.android.com/studio/command-line/aapt2)
 
 ---
@@ -412,7 +415,7 @@ copies or substantial portions of the Software.
 ## 🙋 FAQ
 
 **Q: Can I build this on Windows/Mac?**  
-A: No, this requires Termux (Android). For desktop development, use Android Studio or Command Line Tools.
+A: No, this requires Linux (Android). For desktop development, use Android Studio or Command Line Tools.
 
 **Q: Is this production-ready?**  
 A: Yes! The APK output is fully signed and can be distributed. Just use your own secure keystore credentials.
@@ -465,4 +468,4 @@ If this project helped you build Android apps on your phone, please consider:
 
 **Happy Building! 🎉**
 
-*Built with ❤️ for the Termux community*
+*Built with ❤️ for the Linux community*
