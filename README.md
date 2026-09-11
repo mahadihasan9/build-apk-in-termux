@@ -97,7 +97,7 @@ build-apk-in-termux/
 │
 ├── 📄 AndroidManifest.xml         # App configuration & permissions
 ├── 📋 Makefile                    # Build automation (GNU Make)
-├── 📝 setup.sh                    # apt / environment setup script
+├── 📝 setup.sh                    # Environment setup script (Termux & Linux apt)
 ├── 🔑 my-release-key.jks          # Signing certificate (auto-generated if missing)
 ├── README.md                      # Project documentation
 ├── LICENSE                        # MIT License
@@ -282,17 +282,17 @@ Then verify the path in Makefile:
 ANDROID_JAR := $(HOME)/android-sdk/android.jar
 ```
 
-### Issue: `aarch64-linux-android-clang++ not found`
+### Issue: `C++ compiler not found`
 
 **Solution:**
-```bash
-pkg install ndk-multilib
-```
-
-Verify installation:
-```bash
-which aarch64-linux-android-clang++
-```
+- **On Termux:**
+  ```bash
+  pkg install -y ndk-multilib
+  ```
+- **On Linux PC (Mint / Ubuntu / Debian):**
+  ```bash
+  sudo apt install -y clang
+  ```
 
 ### Issue: Build fails with `No C++ source files found`
 
