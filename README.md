@@ -1,26 +1,25 @@
-# 📱 Linux Android Build System
+# 📱 Linux & Android (Termux) APK Build System
 ## Build APKs on Linux Mint, Ubuntu, Debian & Termux — No Android Studio Required
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Linux%20Mint%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Termux-green.svg)](https://termux.dev)
+[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Termux-green.svg)](https://termux.dev)
 [![Language](https://img.shields.io/badge/language-Java%20%2B%20C%2B%2B-orange.svg)](#)
 [![Status](https://img.shields.io/badge/status-Active-brightgreen.svg)](#)
 
-A lightweight, self-contained **Android CLI development environment** designed for **Linux Mint, Ubuntu, Debian (`apt`)**, and **Termux**. Compile mixed Java and Native C/C++ projects directly into production-ready, aligned, and signed APKs from your terminal without needing Android Studio or Gradle overhead.
+A lightweight, self-contained **Android development environment** that runs on both **Linux PCs (Linux Mint, Ubuntu, Debian)** and directly inside **Termux on Android**. Compile mixed Java and Native C/C++ projects directly into production-ready, aligned, and signed APKs using only standard CLI tools.
 
 ---
 
 ## ✨ Key Features
 
-- **🚀 Linux & Mobile Ready** – Build apps seamlessly on Linux Mint, Ubuntu, Debian (`apt`), or on your phone via Termux
-- **☕ Java + Native C/C++ Support** – Seamlessly mix Java and NDK code in one project
+- **🚀 Dual Platform** – Works seamlessly on Linux PC (Mint/Ubuntu/Debian via `apt`) and Android (Termux via `pkg`)
+- **☕ Java + Native C/C++ Support** – Mix Java (OpenJDK 21/17) and NDK C++ in one project
 - **🔧 JNI Integration** – Call native C++ functions directly from Java
-- **⚙️ Complete Automation** – Build with either `./build.sh` or `make`
-- **🩺 Diagnostic Doctor** – Run `./build.sh doctor` to inspect tools, SDK, NDK, and Java environment
-- **📐 4-Byte ZipAlign** – Ensures standard Android 4-byte zip alignment before signing
-- **🔐 Self-Signed Certificates** – Automatic keystore generation for APK signing (v1, v2, v3 schemes)
-- **📦 Production-Ready Output** – Generate aligned, signed APKs ready for immediate installation
-- **🎯 Multi-Tool Support** – Supports modern `d8` (with `dx` fallback) and Android NDK
+- **⚙️ Full Automation** – Single `make` command builds the entire APK pipeline
+- **📐 4-Byte ZipAlign** – Android standard alignment for fast app loading and verification
+- **🔐 Self-Signed Certificates** – Automatic keystore generation with v1, v2, and v3 signature schemes
+- **📲 Smart Install** – `make install` uses ADB on PC (with device check) or Root (`su`) inside Termux
+- **🎯 Minimal Dependencies** – No Gradle, no Android Studio required
 
 ---
 
@@ -29,24 +28,25 @@ A lightweight, self-contained **Android CLI development environment** designed f
 | Component | Technology |
 |-----------|-----------|
 | **Language** | Java 1.8 + C/C++ (NDK/JNI) |
-| **Build Automation** | `./build.sh` (Bash) + GNU Make |
+| **JDK** | OpenJDK 21 (with OpenJDK 17 fallback) |
+| **Build System** | GNU Make |
 | **Resource Compiler** | AAPT2 |
-| **Java Compiler** | javac (OpenJDK 17/11/8) |
-| **DEX Compiler** | d8 (modern) / dx (dalvik-exchange fallback) |
-| **APK Alignment** | zipalign (4-byte alignment) |
-| **Signing Tool** | apksigner (v1, v2, v3 signature schemes) |
-| **Native Compiler** | Android NDK Clang / Host Clang++ (fallback) |
-| **Android Target** | Android 13 (API 33) / API 23+ compatible |
-| **Minimum API** | API 21 (Android 5.0) |
+| **Java Compiler** | javac |
+| **DEX Compiler** | d8 (modern) / dx (fallback) |
+| **Native Compiler** | aarch64-linux-android-clang++ (Termux/NDK) / clang++ (PC) |
+| **Alignment Tool** | zipalign (4-byte alignment) |
+| **Signing Tool** | apksigner (v1, v2, v3 signing) |
+| **Target API** | Android 13 (API 33) / API 23+ compatible |
+| **Deployment** | ADB (PC) / su pm (Termux) |
 
 ---
 
 ## 📋 Prerequisites
 
-- **Linux** installed on Android device
-- **Internet connection** (for downloading SDK)
-- **~500MB free storage** (for Android SDK + build tools)
-- **Basic Linux/Terminal knowledge**
+- **On PC:** Linux Mint, Ubuntu, or Debian
+- **On Phone:** Android device with [Termux](https://termux.dev)
+- **Internet connection** (for one-time setup)
+- **~500MB free storage** (for Android SDK platform + build tools)
 
 ---
 
@@ -54,7 +54,7 @@ A lightweight, self-contained **Android CLI development environment** designed f
 
 ### Step 1: Environment Setup
 
-Run the automated setup script to install all required tools and dependencies via `apt`:
+Run the setup script. It automatically detects whether you are in **Termux** or on **PC (apt)**:
 
 ```bash
 chmod +x setup.sh
@@ -62,14 +62,14 @@ chmod +x setup.sh
 ```
 
 **What it does:**
-- ✅ Installs OpenJDK 17, AAPT2, APKSigner, zipalign, dx/d8, zip, and clang via `apt`
-- ✅ Sets up Android SDK Platform (`android.jar`)
-- ✅ Verifies C++ compiler availability
-- ✅ Creates necessary directories & symlinks
+- ✅ **Termux:** Installs `aapt2`, `apksigner`, `dx`, `zip`, `ndk-multilib`, and `openjdk-21` via `pkg` (no `sudo`)
+- ✅ **PC (apt):** Installs `openjdk-21-jdk`, `adb`, `clang`, `make`, `zip`, `google-android-build-tools`, `zipalign`, and `apksigner` via `apt`
+- ✅ Sets up `android.jar` (downloads API 33 platform or links system SDK)
+- ✅ Verifies C++/NDK compiler availability
 
 ### Step 2: Build Your App
 
-Execute the build pipeline using `make`:
+Build the entire project with a single command:
 
 ```bash
 make
@@ -79,11 +79,14 @@ make
 
 ### Step 3: Install on Device (Optional)
 
-Deploy directly to a connected device via ADB (or rooted device `pm`):
+Deploy the APK directly to your device:
 
 ```bash
 make install
 ```
+
+- **On PC:** Automatically checks for connected Android devices via ADB and installs the APK. If no device is connected, it alerts you.
+- **On Termux:** Installs directly on rooted devices using `su -c pm install`.
 
 ---
 
@@ -307,12 +310,11 @@ rm my-release-key.jks
 make key-gen
 ```
 
-### Issue: Permission denied for `make install`
+### Issue: `make install` fails or says no device found
 
-**Solution:** Device must be rooted. If not rooted, use:
-```bash
-adb install build/apk/app.apk
-```
+**Solution:**
+- **On PC:** Make sure your phone is connected via USB with **USB Debugging** enabled, or an Android emulator is running. Run `adb devices` in your terminal to verify.
+- **On Termux:** The device must be rooted (`su`) to install directly from the terminal. On non-rooted devices, you can install the generated APK manually from `build/apk/app.apk`.
 
 ---
 
@@ -414,8 +416,8 @@ copies or substantial portions of the Software.
 
 ## 🙋 FAQ
 
-**Q: Can I build this on Windows/Mac?**  
-A: No, this requires Linux (Android). For desktop development, use Android Studio or Command Line Tools.
+**Q: Which operating systems are supported?**  
+A: Linux Mint, Ubuntu, Debian, and Android (Termux). All dependencies are handled automatically via `setup.sh`. Windows is supported via WSL2.
 
 **Q: Is this production-ready?**  
 A: Yes! The APK output is fully signed and can be distributed. Just use your own secure keystore credentials.
