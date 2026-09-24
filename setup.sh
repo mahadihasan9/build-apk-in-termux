@@ -92,10 +92,10 @@ if [ -n "$SYS_JAR" ]; then
     ln -sf "$SYS_JAR" "$ANDROID_SDK_DIR/android.jar"
     echo "   Using system android.jar -> $SYS_JAR"
 elif [ ! -f "$ANDROID_SDK_DIR/android.jar" ]; then
-    PLATFORM_ZIP="/tmp/platform-33.zip"
+    PLATFORM_ZIP="${TMPDIR:-/tmp}/platform-33.zip"
     echo "   Downloading android.jar (API 33) from Google..."
     curl -L -o "$PLATFORM_ZIP" \
-        "https://dl.google.com/android/repository/platform-33_r02.zip"
+        "https://dl.google.com/android/repository/platform-33-ext4_r01.zip"
 
     # Verify the download is a real zip (>1 MB)
     SIZE=$(stat -c%s "$PLATFORM_ZIP" 2>/dev/null || echo 0)
@@ -106,7 +106,7 @@ elif [ ! -f "$ANDROID_SDK_DIR/android.jar" ]; then
         exit 1
     fi
 
-    unzip -j "$PLATFORM_ZIP" "android-13/android.jar" -d "$ANDROID_SDK_DIR/"
+    unzip -j "$PLATFORM_ZIP" "*/android.jar" -d "$ANDROID_SDK_DIR/"
     rm -f "$PLATFORM_ZIP"
     echo "   android.jar saved to $ANDROID_SDK_DIR/android.jar"
 else
@@ -130,7 +130,7 @@ else
     BT_VERSION="34.0.0"
     BT_PARENT="$ANDROID_SDK_DIR/build-tools"
     BT_DIR="$BT_PARENT/$BT_VERSION"
-    BT_ZIP="/tmp/build-tools-r34.zip"
+    BT_ZIP="${TMPDIR:-/tmp}/build-tools-r34.zip"
 
     if [ ! -x "$BT_DIR/aapt2" ]; then
         echo "   Downloading build-tools r34..."
@@ -139,7 +139,7 @@ else
             -O "$BT_ZIP"
 
         mkdir -p "$BT_PARENT"
-        TMP_EXTRACT="/tmp/bt_extract_$$"
+        TMP_EXTRACT="${TMPDIR:-/tmp}/bt_extract_$$"
         mkdir -p "$TMP_EXTRACT"
         unzip -q "$BT_ZIP" -d "$TMP_EXTRACT"
 
@@ -179,7 +179,7 @@ if [ "$IS_TERMUX" = true ]; then
 else
     NDK_VERSION="r27c"
     NDK_DIR="$HOME/android-ndk-$NDK_VERSION"
-    NDK_ZIP="/tmp/android-ndk-$NDK_VERSION-linux.zip"
+    NDK_ZIP="${TMPDIR:-/tmp}/android-ndk-$NDK_VERSION-linux.zip"
 
     if [ ! -d "$NDK_DIR" ]; then
         echo "   Downloading NDK $NDK_VERSION..."
@@ -212,4 +212,3 @@ fi
 
 echo ""
 echo "=== Setup complete ==="
-echo "NOTE: Run:  source ~/.bashrc"
