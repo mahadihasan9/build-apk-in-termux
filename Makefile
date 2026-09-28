@@ -86,7 +86,7 @@ BOLD   := \033[1m
 
 .PHONY: all help clean install uninstall setup-dirs \
         compile-res link-res compile-java dex \
-        key-gen generate-key rmbak lib apk sign
+        key-gen generate-key rmbak lib apk sign publish
 
 # ----------------------------------------------------------------------------
 all: dex lib apk
@@ -97,6 +97,7 @@ all: dex lib apk
 	@echo "$(GREEN)  Native Library: $(LIB_SO)$(RESET)"
 	@echo "$(GREEN)==========================================$(RESET)"
 	@echo ""
+	@$(MAKE) --no-print-directory publish
 
 # ----------------------------------------------------------------------------
 help:
@@ -106,6 +107,7 @@ help:
 	@echo "  $(GREEN)make lib$(RESET)      : Build native library only"
 	@echo "  $(GREEN)make dex$(RESET)      : Compile Java + resources + DEX"
 	@echo "  $(GREEN)make apk$(RESET)      : Build APK from existing files"
+	@echo "  $(GREEN)make publish$(RESET)  : Copy APK from $(APK_DIR)/ to $$HOME/my_apk"
 	@echo "  $(GREEN)make install$(RESET)  : Install APK"
 	@echo "  $(GREEN)make uninstall$(RESET): Remove app"
 	@echo "  $(GREEN)make clean$(RESET)    : Remove build artifacts"
@@ -243,6 +245,30 @@ apk: key-gen
 	@echo ""
 
 sign: apk
+
+# ----------------------------------------------------------------------------
+#  publish: copy every file from $(APK_DIR)/ into $HOME/my_apk/
+#    Termux : storage access is granted once with 'termux-setup-storage'
+#    Linux  : plain copy into $HOME/my_apk/ (for adb install or manual use)
+# ----------------------------------------------------------------------------
+publish:
+	@echo "$(CYAN)--> Copying $(APK_DIR)/ to $(HOME)/my_apk/ ...$(RESET)"
+	@if [ -f "$(APK_DIR)/app.apk" ]; then \
+		mkdir -p "$(HOME)/my_apk"; \
+		cp -f $(APK_DIR)/* "$(HOME)/my_apk/"; \
+		if [ -f "$(HOME)/my_apk/app.apk" ]; then \
+			echo "$(GREEN)--> APK copied successfully!$(RESET)"; \
+			echo "$(GREEN)--> Saved here: $(HOME)/my_apk/app.apk$(RESET)"; \
+			echo "$(CYAN)--> Files in $(HOME)/my_apk/: $$(ls -1 $(HOME)/my_apk | tr '\n' ' ')$(RESET)"; \
+		else \
+			echo "$(RED)Error: copy failed - app.apk not found in $(HOME)/my_apk/$(RESET)"; \
+			exit 1; \
+		fi; \
+	else \
+		echo "$(RED)Error: $(APK_DIR)/app.apk not found. Run 'make' (or 'make apk') first.$(RESET)"; \
+		exit 1; \
+	fi
+	@echo ""
 
 # ----------------------------------------------------------------------------
 install:

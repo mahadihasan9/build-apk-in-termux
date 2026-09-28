@@ -29,6 +29,18 @@ if [ "$IS_TERMUX" = true ]; then
             openjdk-17 ndk-multilib
     pkg install -y zipalign 2>/dev/null || \
         echo "   Note: zipalign not available (optional)."
+
+    # Storage permission — grants access to ~/storage/... (e.g. ~/storage/shared)
+    # so the built APK can be moved/opened from the phone's file manager.
+    if [ -d "$HOME/storage" ]; then
+        echo "   Storage permission already granted ($HOME/storage exists)"
+    elif command -v termux-setup-storage >/dev/null 2>&1; then
+        echo "   Requesting storage permission - approve the dialog on screen..."
+        termux-setup-storage || \
+            echo "   Note: storage permission not granted (optional)."
+    else
+        echo "   Note: termux-setup-storage not available (optional)."
+    fi
 else
     sudo apt-get update
     sudo apt-get install -y openjdk-21-jdk adb clang make zip unzip curl wget file \
