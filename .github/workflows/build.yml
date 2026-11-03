@@ -1,0 +1,45 @@
+name: Build Android APK
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build APK on Ubuntu
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Run environment setup
+        run: bash ./setup.sh
+
+      - name: Build APK
+        run: make
+
+      - name: Verify APK signature
+        run: "$HOME/android-sdk/build-tools/34.0.0/apksigner verify build/apk/app.apk"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-apk
+          path: build/apk/app.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Add build result to summary
+        run: |
+          {
+            echo '## APK build successful'
+            echo ''
+            echo '- APK: `build/apk/app.apk`'
+            echo '- Download the `app-apk` artifact from this workflow run.'
+          } >> "$GITHUB_STEP_SUMMARY"
